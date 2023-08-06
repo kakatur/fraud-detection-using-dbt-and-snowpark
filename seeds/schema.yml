@@ -1,0 +1,7 @@
+version: 2
+
+seeds:
+  - name: fct_swipe
+    description: swipe data
+    columns:
+      - name: swipe_id
