@@ -1,0 +1,12 @@
+
+version: 2
+
+models:
+  - name: fct_swipe_features
+    description: machine learning features for each swipe
+    columns:
+      - name: swipe_id
+        tests:
+          - unique
+          - not_null
+
