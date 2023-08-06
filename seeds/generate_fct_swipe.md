@@ -1,7 +1,7 @@
 
-The attached fct_swipe.csv contains ~600,000 production-grade swipe data generated using Python faker module. A number of real fraud scenarios have been coded in the script plus real-like fraud and non-fraud data has been generated for associated data elements as well.
+The included fct_swipe.csv contains ~600,000 production-grade swipe records generated using Python faker module. A number of real fraud scenarios have been coded in the script plus real-like fraud and non-fraud data has been generated for associated data elements as well.
 
-Below is the python script that helped generate the data.
+You may run the below Python script to generate the data.
 
      from datetime import datetime, timedelta
      import pandas as pd
@@ -70,13 +70,13 @@ Below is the python script that helped generate the data.
          # add to member_df
          member_df.loc[len(member_df.index)] = [is_fraud, member_id, first_name, last_name, policy_start_date]
      
-     
      # print stats for member_df
      pd.set_option('display.max_columns', None)
      print(member_df.head())
      print(member_df.tail())
      print('fraudster member count: ' + str(len(member_df[member_df['is_fraud'] == 'T'].index)))
      print('non-fraudster member count: ' + str(len(member_df[member_df['is_fraud'] == 'F'].index)))
+
      
      ##### Generate Swipes
      
@@ -85,7 +85,7 @@ Below is the python script that helped generate the data.
      swipe_id = 0
      swipe_date = datetime(2020, 1, 1)  # we will increment swipe_date by random seconds for the next swipe
      mcc_master_list = [
-         5411, 5912, 5300, 5122, 7399,  # these 5 mcc's are high-risk
+         5411, 5912, 5300, 5122, 7399,  # fraud happens mostly with the first 5 types of merchants
          4119, 5047, 5975, 5976, 7277,
          8011, 8031, 8041, 8049, 8050,
          8062, 8071, 8099, 8734, 8021,
@@ -116,10 +116,11 @@ Below is the python script that helped generate the data.
          if swipe_date.hour < 6:
              swipe_date = swipe_date + timedelta(hours=6)
      
-         # selected_member_df needs to be filled either with a fraudster or non-fraudster member (note: we target 2% of the swipes from the fraudsters)
+         # selected_member_df needs to be filled either with a fraudster or non-fraudster member (note: we target 2% of total swipes from fraudsters)
          selected_member_df = None
      
          # first, let's check if there is any fraudster that has started their policy in the last 30 minutes of swipe_date
+         # fraudsters tend to swipe immediately after the policy start date
          filtered_member_df = member_df[(
              (member_df['policy_start_date'] >= swipe_date-timedelta(minutes=30))
              &
@@ -136,7 +137,7 @@ Below is the python script that helped generate the data.
              if len(filtered_member_df.index) > 0:
                  selected_member_df = filtered_member_df.iloc[fake.random.randint(0, len(filtered_member_df.index)-1)]
      
-         # if the selected_member_df is still None, raise an error. In this case, we need to generate more member records in the earlier step.
+         # if selected_member_df is still None, raise an error. In this case, we need to generate more member records in the earlier step.
          if selected_member_df is None:
              print("Swipe Date: " + str(swipe_date))
              raise Exception("Unable to locate a member record")
@@ -351,4 +352,3 @@ Below is the python script that helped generate the data.
      print('fraudster swipe count: ' + str(len(df[df['is_fraud'] == 'T'].index)))
      print('non-fraudster swipe count: ' + str(len(df[df['is_fraud'] == 'F'].index)))
      df.to_csv("fct_swipe.csv", index=False, chunksize=5000)
-
