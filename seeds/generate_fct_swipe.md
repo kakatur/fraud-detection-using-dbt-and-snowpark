@@ -22,19 +22,19 @@ You may run the below Python script to generate the data.
      ##### Generate Members
      
      # initialize variables for members
-     target_member_count = 20000
-     member_id = 0
+     target_policy_holder_count = 20000
+     policy_holder_id = 0
      policy_start_date = datetime(2019, 8, 1)  # we will increment policy_start_date by random minutes for each new member created
-     member_df = pd.DataFrame({
+     policy_holder_df = pd.DataFrame({
          'is_fraud': [],
-         'member_id': [],
+         'policy_holder_id': [],
          'first_name': [],
          'last_name': [],
          'policy_start_date': [],
      })
      
      # generate data for members
-     for i in range(target_member_count):
+     for i in range(target_policy_holder_count):
      
          # is_fraud should happen for less than 1% cases
          if fake.random.randint(1, 150) < 2:
@@ -42,20 +42,20 @@ You may run the below Python script to generate the data.
          else:
              is_fraud = 'F'
      
-         # member_id is a simple increment
-         member_id += 1
+         # policy_holder_id is a simple increment
+         policy_holder_id += 1
      
          # generate first_name and last_name
          first_name = None
-         # fraud members come back 60% of the time; they will have the same name but a different member_id and policy_start_date
+         # fraud members come back 60% of the time; they will have the same name but a different policy_holder_id and policy_start_date
          if is_fraud == 'T':
              if fake.random.randint(1, 100) < 60:
-                 fraud_member_df = member_df[member_df["is_fraud"] == 'T'].reset_index()
+                 fraud_policy_holder_df = policy_holder_df[policy_holder_df["is_fraud"] == 'T'].reset_index()
                  # pick from the existing dataset only if there are atleast 5 members
-                 if len(fraud_member_df.index) > 5:
-                     prev_index = fake.random.randint(0, len(fraud_member_df.index)-1)
-                     first_name = fraud_member_df.loc[prev_index, 'first_name']
-                     last_name = fraud_member_df.loc[prev_index, 'last_name']
+                 if len(fraud_policy_holder_df.index) > 5:
+                     prev_index = fake.random.randint(0, len(fraud_policy_holder_df.index)-1)
+                     first_name = fraud_policy_holder_df.loc[prev_index, 'first_name']
+                     last_name = fraud_policy_holder_df.loc[prev_index, 'last_name']
          # in all other cases, generate first_name and last_name
          if first_name is None:
              first_name = fake.name().split(' ')[0].upper()
@@ -67,15 +67,15 @@ You may run the below Python script to generate the data.
          if policy_start_date.hour < 6:
              policy_start_date = policy_start_date + timedelta(hours=6)
      
-         # add to member_df
-         member_df.loc[len(member_df.index)] = [is_fraud, member_id, first_name, last_name, policy_start_date]
+         # add to policy_holder_df
+         policy_holder_df.loc[len(policy_holder_df.index)] = [is_fraud, policy_holder_id, first_name, last_name, policy_start_date]
      
-     # print stats for member_df
+     # print stats for policy_holder_df
      pd.set_option('display.max_columns', None)
-     print(member_df.head())
-     print(member_df.tail())
-     print('fraudster member count: ' + str(len(member_df[member_df['is_fraud'] == 'T'].index)))
-     print('non-fraudster member count: ' + str(len(member_df[member_df['is_fraud'] == 'F'].index)))
+     print(policy_holder_df.head())
+     print(policy_holder_df.tail())
+     print('fraudster member count: ' + str(len(policy_holder_df[policy_holder_df['is_fraud'] == 'T'].index)))
+     print('non-fraudster member count: ' + str(len(policy_holder_df[policy_holder_df['is_fraud'] == 'F'].index)))
 
      
      ##### Generate Swipes
@@ -101,7 +101,7 @@ You may run the below Python script to generate the data.
      mcc_list = []
      merchant_name_list = []
      merchant_zipcode_list = []
-     member_id_list = []
+     policy_holder_id_list = []
      first_name_list = []
      last_name_list = []
      policy_start_date_list = []
@@ -116,34 +116,34 @@ You may run the below Python script to generate the data.
          if swipe_date.hour < 6:
              swipe_date = swipe_date + timedelta(hours=6)
      
-         # selected_member_df needs to be filled either with a fraudster or non-fraudster member (note: we target 2% of total swipes from fraudsters)
-         selected_member_df = None
+         # selected_policy_holder_df needs to be filled either with a fraudster or non-fraudster member (note: we target 2% of total swipes from fraudsters)
+         selected_policy_holder_df = None
      
          # first, let's check if there is any fraudster that has started their policy in the last 30 minutes of swipe_date
          # fraudsters tend to swipe immediately after the policy start date
-         filtered_member_df = member_df[(
-             (member_df['policy_start_date'] >= swipe_date-timedelta(minutes=30))
+         filtered_policy_holder_df = policy_holder_df[(
+             (policy_holder_df['policy_start_date'] >= swipe_date-timedelta(minutes=30))
              &
-             (member_df['policy_start_date'] < swipe_date)
+             (policy_holder_df['policy_start_date'] < swipe_date)
              &
-             (member_df['is_fraud'] == 'T')
+             (policy_holder_df['is_fraud'] == 'T')
          )]
-         if len(filtered_member_df.index) > 0:
-             selected_member_df = filtered_member_df.iloc[fake.random.randint(0, len(filtered_member_df.index)-1)]
+         if len(filtered_policy_holder_df.index) > 0:
+             selected_policy_holder_df = filtered_policy_holder_df.iloc[fake.random.randint(0, len(filtered_policy_holder_df.index)-1)]
      
          # second, select a random member that has their policy started in the last 1 year (fraudster or non-fraudster)
-         if selected_member_df is None:
-             filtered_member_df = member_df[((member_df['policy_start_date'] >= swipe_date-timedelta(weeks=56)) & (member_df['policy_start_date'] < swipe_date))]
-             if len(filtered_member_df.index) > 0:
-                 selected_member_df = filtered_member_df.iloc[fake.random.randint(0, len(filtered_member_df.index)-1)]
+         if selected_policy_holder_df is None:
+             filtered_policy_holder_df = policy_holder_df[((policy_holder_df['policy_start_date'] >= swipe_date-timedelta(weeks=56)) & (policy_holder_df['policy_start_date'] < swipe_date))]
+             if len(filtered_policy_holder_df.index) > 0:
+                 selected_policy_holder_df = filtered_policy_holder_df.iloc[fake.random.randint(0, len(filtered_policy_holder_df.index)-1)]
      
-         # if selected_member_df is still None, raise an error. In this case, we need to generate more member records in the earlier step.
-         if selected_member_df is None:
+         # if selected_policy_holder_df is still None, raise an error. In this case, we need to generate more member records in the earlier step.
+         if selected_policy_holder_df is None:
              print("Swipe Date: " + str(swipe_date))
              raise Exception("Unable to locate a member record")
      
          # generate swipes for fraudsters
-         if selected_member_df['is_fraud'] == 'T':
+         if selected_policy_holder_df['is_fraud'] == 'T':
              fraud_type = fake.random.randint(1, 3)
              if fraud_type == 1:
      
@@ -151,7 +151,7 @@ You may run the below Python script to generate the data.
                  for j in range(fake.random.randint(6, 20)):
      
                      # is_fraud
-                     is_fraud_list.append(selected_member_df['is_fraud'])
+                     is_fraud_list.append(selected_policy_holder_df['is_fraud'])
      
                      # swipe_id is a simple increment
                      swipe_id += 1
@@ -177,24 +177,24 @@ You may run the below Python script to generate the data.
                      merchant_zipcode = fake.address().split()[-1]
                      merchant_zipcode_list.append(merchant_zipcode)
      
-                     # member_id
-                     member_id_list.append(selected_member_df['member_id'])
+                     # policy_holder_id
+                     policy_holder_id_list.append(selected_policy_holder_df['policy_holder_id'])
      
                      # first_name
-                     first_name_list.append(selected_member_df['first_name'])
+                     first_name_list.append(selected_policy_holder_df['first_name'])
      
                      # last_name
-                     last_name_list.append(selected_member_df['last_name'])
+                     last_name_list.append(selected_policy_holder_df['last_name'])
      
                      # policy_start_date
-                     policy_start_date_list.append(selected_member_df['policy_start_date'])
+                     policy_start_date_list.append(selected_policy_holder_df['policy_start_date'])
      
              elif fraud_type == 2:
      
                  # this type of fraud involves swiping the card with amounts x.95 or 100 or 500
      
                  # is_fraud
-                 is_fraud_list.append(selected_member_df['is_fraud'])
+                 is_fraud_list.append(selected_policy_holder_df['is_fraud'])
      
                  # swipe_id is a simple increment
                  swipe_id += 1
@@ -226,24 +226,24 @@ You may run the below Python script to generate the data.
                  merchant_zipcode = fake.address().split()[-1]
                  merchant_zipcode_list.append(merchant_zipcode)
      
-                 # member_id
-                 member_id_list.append(selected_member_df['member_id'])
+                 # policy_holder_id
+                 policy_holder_id_list.append(selected_policy_holder_df['policy_holder_id'])
      
                  # first_name
-                 first_name_list.append(selected_member_df['first_name'])
+                 first_name_list.append(selected_policy_holder_df['first_name'])
      
                  # last_name
-                 last_name_list.append(selected_member_df['last_name'])
+                 last_name_list.append(selected_policy_holder_df['last_name'])
      
                  # policy_start_date
-                 policy_start_date_list.append(selected_member_df['policy_start_date'])
+                 policy_start_date_list.append(selected_policy_holder_df['policy_start_date'])
      
              elif fraud_type == 3:
      
                  # this type of fraud involves swiping with a merchant that matches member's first_name or last_name
      
                  # is_fraud
-                 is_fraud_list.append(selected_member_df['is_fraud'])
+                 is_fraud_list.append(selected_policy_holder_df['is_fraud'])
      
                  # swipe_id is a simple increment
                  swipe_id += 1
@@ -264,34 +264,34 @@ You may run the below Python script to generate the data.
                  # merchant name
                  merchant_name_rand = fake.random.randint(1, 3)
                  if merchant_name_rand == 1:
-                     merchant_name = fake.medical_profession() + " " + selected_member_df['first_name']
+                     merchant_name = fake.medical_profession() + " " + selected_policy_holder_df['first_name']
                  elif merchant_name_rand == 2:
-                     merchant_name = fake.medical_profession() + " " + selected_member_df['last_name']
+                     merchant_name = fake.medical_profession() + " " + selected_policy_holder_df['last_name']
                  else:
-                     merchant_name = fake.medical_profession() + " " + selected_member_df['first_name'] + " " + selected_member_df['last_name']
+                     merchant_name = fake.medical_profession() + " " + selected_policy_holder_df['first_name'] + " " + selected_policy_holder_df['last_name']
                  merchant_name_list.append(merchant_name)
      
                  # merchant zipcode
                  merchant_zipcode = fake.address().split()[-1]
                  merchant_zipcode_list.append(merchant_zipcode)
      
-                 # member_id
-                 member_id_list.append(selected_member_df['member_id'])
+                 # policy_holder_id
+                 policy_holder_id_list.append(selected_policy_holder_df['policy_holder_id'])
      
                  # first_name
-                 first_name_list.append(selected_member_df['first_name'])
+                 first_name_list.append(selected_policy_holder_df['first_name'])
      
                  # last_name
-                 last_name_list.append(selected_member_df['last_name'])
+                 last_name_list.append(selected_policy_holder_df['last_name'])
      
                  # policy_start_date
-                 policy_start_date_list.append(selected_member_df['policy_start_date'])
+                 policy_start_date_list.append(selected_policy_holder_df['policy_start_date'])
      
          # generate swipes for non-fraudsters
          else:
      
              # is_fraud
-             is_fraud_list.append(selected_member_df['is_fraud'])
+             is_fraud_list.append(selected_policy_holder_df['is_fraud'])
      
              # swipe_id is a simple increment
              swipe_id += 1
@@ -317,17 +317,17 @@ You may run the below Python script to generate the data.
              merchant_zipcode = fake.address().split()[-1]
              merchant_zipcode_list.append(merchant_zipcode)
      
-             # member_id
-             member_id_list.append(selected_member_df['member_id'])
+             # policy_holder_id
+             policy_holder_id_list.append(selected_policy_holder_df['policy_holder_id'])
      
              # first_name
-             first_name_list.append(selected_member_df['first_name'])
+             first_name_list.append(selected_policy_holder_df['first_name'])
      
              # last_name
-             last_name_list.append(selected_member_df['last_name'])
+             last_name_list.append(selected_policy_holder_df['last_name'])
      
              # policy_start_date
-             policy_start_date_list.append(selected_member_df['policy_start_date'])
+             policy_start_date_list.append(selected_policy_holder_df['policy_start_date'])
      
      
      # create dataframe from lists
@@ -339,7 +339,7 @@ You may run the below Python script to generate the data.
          'mcc': mcc_list,
          'merchant_name': merchant_name_list,
          'merchant_zipcode': merchant_zipcode_list,
-         'member_id': member_id_list,
+         'policy_holder_id': policy_holder_id_list,
          'first_name': first_name_list,
          'last_name': last_name_list,
          'policy_start_date': policy_start_date_list,

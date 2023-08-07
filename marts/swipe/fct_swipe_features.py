@@ -33,10 +33,10 @@ def model(dbt, session):
 
     df["POSSIBLE_GIFT_CARD"] = df["SWIPE_AMOUNT"].apply(lambda x: 1 if round(x*100) % 100 == 95 or x in [100, 500, 1000] else 0)
 
-    ### Create features SWIPE_COUNT_ROLLING_48_HR and SWIPE_AMOUNT_ROLLING_48_HR for each member_uuid
+    ### Create features SWIPE_COUNT_ROLLING_48_HR and SWIPE_AMOUNT_ROLLING_48_HR for each policy_holder_id
 
     df_swipe_rolling = (df
-        .groupby(['MEMBER_UUID'])
+        .groupby(['POLICY_HOLDER_ID'])
         .apply(lambda x: x
             .sort_values('SWIPE_DATE')
             .rolling('2D', on='SWIPE_DATE', center=True)
@@ -60,10 +60,10 @@ def model(dbt, session):
 
     df["MERCHANT_MCC"] = df["MERCHANT_MCC"].apply(lambda x: 1 if x in ['5411', '5912', '5300', '5122', '7399'] else 0)
 
-    ### Derive feature MERCHANT_NAME_MATCHES_MEMBER_NAME based on how close the merchant name from member's First Name and Last Name
+    ### Derive feature MERCHANT_NAME_MATCHES_POLICY_HOLDER_NAME based on how close the merchant name from Policy Holder's First Name and Last Name
 
     df["MERCHANT_NAME"] = df["MERCHANT_NAME"].apply(lambda x: re.sub(" +", " ", re.sub("[^A-Z\s]+", "", x)).strip())  # remove non-alpha chars
-    df["MERCHANT_NAME_MATCHES_MEMBER_NAME"] = df.apply(
+    df["MERCHANT_NAME_MATCHES_POLICY_HOLDER_NAME"] = df.apply(
         lambda row:
                 ( len(row['FIRST_NAME']) if row['FIRST_NAME'] in row['MERCHANT_NAME'] else 0 ) +
                 ( len(row['FIRST_NAME']) * 3 if row['FIRST_NAME'] + " " in row['MERCHANT_NAME'] else 0 ) +  # more weight for first_name followed by a space
@@ -89,7 +89,7 @@ def model(dbt, session):
     features = [
         'SWIPE_ID', 'SWIPE_DATE', 'SWIPE_DAY', 'SWIPE_TIME_OF_DAY', 'IS_FIRST_WEEK_OF_POLICY',
         'POSSIBLE_GIFT_CARD', 'SWIPE_COUNT_ROLLING_48_HR', 'SWIPE_AMOUNT_ROLLING_48_HR',
-        'MERCHANT_MCC', 'MERCHANT_NAME_MATCHES_MEMBER_NAME', 'SWIPE_CITY_FRAUDSTER_COUNT', 'IS_FRAUD'
+        'MERCHANT_MCC', 'MERCHANT_NAME_MATCHES_POLICY_HOLDER_NAME', 'SWIPE_CITY_FRAUDSTER_COUNT', 'IS_FRAUD'
     ]
     df = df[features]
 

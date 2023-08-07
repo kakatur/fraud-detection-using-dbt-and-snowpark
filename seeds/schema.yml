@@ -11,7 +11,7 @@ seeds:
         mcc: VARCHAR(4)
         merchant_name: VARCHAR(100)
         merchant_zipcode: VARCHAR(5)
-        member_id: INTEGER
+        policy_holder_id: INTEGER
         first_name: VARCHAR(50)
         last_name: VARCHAR(50)
         policy_start_date: TIMESTAMP_NTZ
