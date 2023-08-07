@@ -19,12 +19,12 @@ You may run the below Python script to generate the data.
      ))
      
      
-     ##### Generate Members
+     ##### Generate Policy Holders
      
-     # initialize variables for members
+     # initialize variables for Policy Holders
      target_policy_holder_count = 20000
      policy_holder_id = 0
-     policy_start_date = datetime(2019, 8, 1)  # we will increment policy_start_date by random minutes for each new member created
+     policy_start_date = datetime(2019, 8, 1)  # we will increment policy_start_date by random minutes for each new policy holder created
      policy_holder_df = pd.DataFrame({
          'is_fraud': [],
          'policy_holder_id': [],
@@ -33,7 +33,7 @@ You may run the below Python script to generate the data.
          'policy_start_date': [],
      })
      
-     # generate data for members
+     # generate data for Policy Holders
      for i in range(target_policy_holder_count):
      
          # is_fraud should happen for less than 1% cases
@@ -47,11 +47,11 @@ You may run the below Python script to generate the data.
      
          # generate first_name and last_name
          first_name = None
-         # fraud members come back 60% of the time; they will have the same name but a different policy_holder_id and policy_start_date
+         # fraudsters come back 60% of the time; they will have the same name but a different policy_holder_id and policy_start_date
          if is_fraud == 'T':
              if fake.random.randint(1, 100) < 60:
                  fraud_policy_holder_df = policy_holder_df[policy_holder_df["is_fraud"] == 'T'].reset_index()
-                 # pick from the existing dataset only if there are atleast 5 members
+                 # pick from the existing dataset only if there are atleast 5 fraudsters
                  if len(fraud_policy_holder_df.index) > 5:
                      prev_index = fake.random.randint(0, len(fraud_policy_holder_df.index)-1)
                      first_name = fraud_policy_holder_df.loc[prev_index, 'first_name']
@@ -74,8 +74,8 @@ You may run the below Python script to generate the data.
      pd.set_option('display.max_columns', None)
      print(policy_holder_df.head())
      print(policy_holder_df.tail())
-     print('fraudster member count: ' + str(len(policy_holder_df[policy_holder_df['is_fraud'] == 'T'].index)))
-     print('non-fraudster member count: ' + str(len(policy_holder_df[policy_holder_df['is_fraud'] == 'F'].index)))
+     print('fraudster policy holder count: ' + str(len(policy_holder_df[policy_holder_df['is_fraud'] == 'T'].index)))
+     print('non-fraudster policy holder count: ' + str(len(policy_holder_df[policy_holder_df['is_fraud'] == 'F'].index)))
 
      
      ##### Generate Swipes
@@ -116,7 +116,7 @@ You may run the below Python script to generate the data.
          if swipe_date.hour < 6:
              swipe_date = swipe_date + timedelta(hours=6)
      
-         # selected_policy_holder_df needs to be filled either with a fraudster or non-fraudster member (note: we target 2% of total swipes from fraudsters)
+         # selected_policy_holder_df needs to be filled either with a fraudster or non-fraudster (note: we target 2% of total swipes from fraudsters)
          selected_policy_holder_df = None
      
          # first, let's check if there is any fraudster that has started their policy in the last 30 minutes of swipe_date
@@ -131,16 +131,16 @@ You may run the below Python script to generate the data.
          if len(filtered_policy_holder_df.index) > 0:
              selected_policy_holder_df = filtered_policy_holder_df.iloc[fake.random.randint(0, len(filtered_policy_holder_df.index)-1)]
      
-         # second, select a random member that has their policy started in the last 1 year (fraudster or non-fraudster)
+         # second, select a random policy holder that has their policy started in the last 1 year (fraudster or non-fraudster)
          if selected_policy_holder_df is None:
              filtered_policy_holder_df = policy_holder_df[((policy_holder_df['policy_start_date'] >= swipe_date-timedelta(weeks=56)) & (policy_holder_df['policy_start_date'] < swipe_date))]
              if len(filtered_policy_holder_df.index) > 0:
                  selected_policy_holder_df = filtered_policy_holder_df.iloc[fake.random.randint(0, len(filtered_policy_holder_df.index)-1)]
      
-         # if selected_policy_holder_df is still None, raise an error. In this case, we need to generate more member records in the earlier step.
+         # if selected_policy_holder_df is still None, raise an error. In this case, we need to generate more policy holder records in the earlier step.
          if selected_policy_holder_df is None:
              print("Swipe Date: " + str(swipe_date))
-             raise Exception("Unable to locate a member record")
+             raise Exception("Unable to locate a policy holder record")
      
          # generate swipes for fraudsters
          if selected_policy_holder_df['is_fraud'] == 'T':
@@ -240,7 +240,7 @@ You may run the below Python script to generate the data.
      
              elif fraud_type == 3:
      
-                 # this type of fraud involves swiping with a merchant that matches member's first_name or last_name
+                 # this type of fraud involves swiping with a merchant that matches policy holder's first_name or last_name
      
                  # is_fraud
                  is_fraud_list.append(selected_policy_holder_df['is_fraud'])
