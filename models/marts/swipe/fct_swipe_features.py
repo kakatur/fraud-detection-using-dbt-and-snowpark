@@ -1,8 +1,7 @@
 
-from datetime import datetime
-import pandas as pd
-import re
-from sklearn.preprocessing import StandardScaler
+#
+# This model creates machine learning features for swipe data
+#
 
 def model(dbt, session):
 
@@ -11,8 +10,13 @@ def model(dbt, session):
     dbt.config(
         materialized = "incremental",
         unique_key = 'swipe_id',
-        packages = ['scikit-learn', 'pandas']
+        packages = ['scikit-learn==1.2.2', 'pandas==1.5.3']
     )
+
+    from datetime import datetime
+    import pandas as pd
+    import re
+    from sklearn.preprocessing import StandardScaler
 
     ### Fetch data from Snowflake (last 15 days if incremental)
 
