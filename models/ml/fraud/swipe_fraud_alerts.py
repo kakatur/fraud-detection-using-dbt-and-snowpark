@@ -3,6 +3,26 @@
 # This model builds the machine learning model for swipe fraud alerts and uploads the model file into Snowflake stage area.
 #
 
+from datetime import datetime
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score, f1_score
+
+import sys
+import os
+import joblib
+import cachetools
+
+from snowflake.snowpark.functions import udf
+from snowflake.snowpark.types import FloatType, TimestampType, StringType, StructType, StructField
+
 def model(dbt, session):
 
     ### dbt config
@@ -11,9 +31,6 @@ def model(dbt, session):
         materialized = "incremental",
         packages = ['scikit-learn==1.2.2', 'xgboost==1.7.3', 'cachetools==4.2.2', 'pandas==1.5.3']
     )
-
-    from datetime import datetime
-    import pandas as pd
 
     ### Load features from Snowflake
 
@@ -53,15 +70,6 @@ def model(dbt, session):
     swipe_fraud_alerts_model_status = 'not_deployed'
 
     ### Train using multiple models and select the best
-
-    from sklearn.model_selection import train_test_split
-    from sklearn.tree import DecisionTreeClassifier
-    from sklearn.neighbors import KNeighborsClassifier
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.svm import SVC
-    from sklearn.ensemble import RandomForestClassifier
-    from xgboost import XGBClassifier
-    from sklearn.metrics import accuracy_score, f1_score
 
     for m in ['DecisionTreeClassifier', 'KNeighborsClassifier', 'LogisticRegression', 'SVC', 'RandomForestClassifier', 'XGBClassifier']:
 
@@ -106,11 +114,6 @@ def model(dbt, session):
 
     if model_accuracy_score > previous_accuracy_score and model_f1_score > previous_f1_score:
 
-        import sys
-        import os
-        import joblib
-        import cachetools
-
         ### Store model into Snowflake stage
 
         joblib.dump(swipe_fraud_alerts_model, '/tmp/swipe_fraud_alerts_model.joblib', compress=True)
@@ -130,7 +133,6 @@ def model(dbt, session):
 
         ### Create UDF
 
-        from snowflake.snowpark.functions import udf
         @udf(name='predict_fraudster_swipe', is_permanent=False, stage_location = "@"+dbt.this.database+".PUBLIC.MODELS_STAGE", replace=True)
         def predict_fraudster_swipe(args: list) -> float:
 
@@ -144,7 +146,6 @@ def model(dbt, session):
 
     ### Return model statitics
 
-    from snowflake.snowpark.types import FloatType, TimestampType, StringType, StructType, StructField
     return session.create_dataframe(
         [(datetime.now(), model_accuracy_score, model_f1_score, swipe_fraud_alerts_model_status, swipe_fraud_alerts_model_name)],
         schema = StructType([

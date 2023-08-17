@@ -3,6 +3,11 @@
 # This model creates machine learning features for swipe data
 #
 
+from datetime import datetime
+import pandas as pd
+import re
+from sklearn.preprocessing import StandardScaler
+
 def model(dbt, session):
 
     ### dbt config
@@ -12,11 +17,6 @@ def model(dbt, session):
         unique_key = 'swipe_id',
         packages = ['scikit-learn==1.2.2', 'pandas==1.5.3']
     )
-
-    from datetime import datetime
-    import pandas as pd
-    import re
-    from sklearn.preprocessing import StandardScaler
 
     ### Fetch data from Snowflake (last 15 days if incremental)
 
