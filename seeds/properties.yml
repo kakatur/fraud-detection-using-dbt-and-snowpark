@@ -1,9 +1,10 @@
+
 version: 2
 
 seeds:
-  fraud_detection_using_dbt_and_snowpark:
-    fct_swipe:
-      +column_types:
+  - name: fct_swipe
+    config:
+      column_types:
         is_fraud: VARCHAR(1)
         swipe_id: INTEGER
         swipe_date: TIMESTAMP_NTZ
@@ -15,4 +16,3 @@ seeds:
         first_name: VARCHAR(50)
         last_name: VARCHAR(50)
         policy_start_date: TIMESTAMP_NTZ
-
