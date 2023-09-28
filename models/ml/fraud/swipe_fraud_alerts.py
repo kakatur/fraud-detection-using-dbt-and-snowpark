@@ -34,7 +34,7 @@ def model(dbt, session):
 
     ### Load features from Snowflake
 
-    df_dim_swipe_features = dbt.ref("dim_swipe_features").to_pandas()
+    df_dim_swipe_features = dbt.ref("fct_swipe_features").to_pandas()
 
     ### Exclude the latest 2 days from the dataset
 
