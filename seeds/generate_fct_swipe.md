@@ -1,5 +1,5 @@
 
-The included fct_swipe.csv contains ~600,000 production-grade swipe records generated using Python faker module. A number of real fraud scenarios have been coded in the script plus real-like fraud and non-fraud data has been generated for associated data elements as well.
+The included fct_swipe.csv contains ~400,000 production-grade swipe records generated using Python faker module. A number of real-world fraud scenarios have been coded in the script plus real-like fraud and non-fraud data has been generated for associated data elements as well.
 
 You may run the below Python script to generate the data.
 
