@@ -53,7 +53,7 @@ def model(dbt, session):
     features = [
         'SWIPE_DAY', 'SWIPE_TIME_OF_DAY', 'IS_FIRST_WEEK_OF_POLICY',
         'POSSIBLE_GIFT_CARD', 'SWIPE_COUNT_ROLLING_48_HR', 'SWIPE_AMOUNT_ROLLING_48_HR',
-        'MERCHANT_MCC', 'MERCHANT_NAME_MATCHES_MEMBER_NAME', 'SWIPE_CITY_FRAUDSTER_COUNT'
+        'MCC', 'MERCHANT_NAME_MATCHES_POLICY_HOLDER_NAME'
     ]
     target = 'IS_FRAUD'
 
@@ -144,7 +144,7 @@ def model(dbt, session):
 
         swipe_fraud_alerts_model_status = 'deployed'
 
-    ### Return model statitics
+    ### Return model statistics
 
     return session.create_dataframe(
         [(datetime.now(), model_accuracy_score, model_f1_score, swipe_fraud_alerts_model_status, swipe_fraud_alerts_model_name)],

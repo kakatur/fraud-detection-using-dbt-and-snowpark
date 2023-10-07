@@ -28,9 +28,5 @@ clean-targets:         # directories to be removed by `dbt clean`
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
 models:
   fraud_detection_using_dbt_and_snowpark:
-    marts:
-      +materialized: view
-      schema: DBT
-    ml:
-      +materialized: table
-      schema: MODEL_OUTPUT
+    +materialized: table
+    schema: SWIPE
