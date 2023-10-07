@@ -15,14 +15,14 @@ def model(dbt, session):
     dbt.config(
         materialized = "incremental",
         unique_key = 'swipe_id',
-        packages = ['scikit-learn==1.2.2', 'pandas==1.5.3']
+        packages = ['scikit-learn==1.3.0', 'pandas==1.5.3']
     )
 
-    ### Fetch data from Snowflake (last 15 days if incremental)
+    ### Fetch data from Snowflake (last x days if incremental)
 
     df = dbt.source("FRAUD_WORKSHOP_DB__SWIPE", "FCT_SWIPE").to_pandas()
     if dbt.is_incremental:
-        df = df[df.SWIPE_DATE > datetime.now() - pd.to_timedelta("15day")]
+        df = df[df.SWIPE_DATE > datetime.now() - pd.to_timedelta("150day")]
 
     ### Create features "Swipe Day" and "Swipe Time of Day" from Swipe Date
 
@@ -31,7 +31,7 @@ def model(dbt, session):
 
     ### Did the swipe happen in the first week of policy start date?
 
-    df["IS_FIRST_WEEK_OF_POLICY"] = df.apply(lambda row: 1 if (row['SWIPE_DATE']-row['FIRST_POLICY_START_DATE']).days < 8 else 0, axis=1)
+    df["IS_FIRST_WEEK_OF_POLICY"] = df.apply(lambda row: 1 if (row['SWIPE_DATE']-row['POLICY_START_DATE']).days < 8 else 0, axis=1)
 
     ### Create feature POSSIBLE_GIFT_CARD from SWIPE_AMOUNT
 
@@ -50,9 +50,9 @@ def model(dbt, session):
     )
 
     df = (df
-        .merge(df_swipe_rolling, how='inner', left_index=True, right_on='level_1', suffixes=['','_ROLLING_48_HR'])
+        .merge(df_swipe_rolling, how='inner', left_index=True, right_on='index', suffixes=['','_ROLLING_48_HR'])
         .rename(columns={'SWIPE_ID_ROLLING_48_HR': 'SWIPE_COUNT_ROLLING_48_HR'})
-        .drop(columns='level_1')
+        .drop(columns='index')
     )
 
     ### Scale SWIPE_AMOUNT_ROLLING_48_HR
@@ -60,9 +60,9 @@ def model(dbt, session):
     sc = StandardScaler()
     df["SWIPE_AMOUNT_ROLLING_48_HR"] = sc.fit_transform(df["SWIPE_AMOUNT_ROLLING_48_HR"].values.reshape(-1, 1))
 
-    ### Encode Merchant MCC: High Risk MCC will be encoded as 1 and the others as 0
+    ### Encode MCC: High Risk MCC will be encoded as 1 and the others as 0
 
-    df["MERCHANT_MCC"] = df["MERCHANT_MCC"].apply(lambda x: 1 if x in ['5411', '5912', '5300', '5122', '7399'] else 0)
+    df["MCC"] = df["MCC"].apply(lambda x: 1 if x in ['5411', '5912', '5300', '5122', '7399'] else 0)
 
     ### Derive feature MERCHANT_NAME_MATCHES_POLICY_HOLDER_NAME based on how close the merchant name from Policy Holder's First Name and Last Name
 
@@ -79,11 +79,6 @@ def model(dbt, session):
         axis=1
     )
 
-    ### Create new feature SWIPE_CITY_FRAUDSTER_COUNT based on the counts of CARD_ACCEPTOR_CITY where IS_FRAUD is T, then use StandardScalar
-
-    df['SWIPE_CITY_FRAUDSTER_COUNT'] = df['CARD_ACCEPTOR_CITY'].map(df[df['IS_FRAUD']=='T']['CARD_ACCEPTOR_CITY'].value_counts()).fillna(0)
-    df["SWIPE_CITY_FRAUDSTER_COUNT"] = sc.fit_transform(df["SWIPE_CITY_FRAUDSTER_COUNT"].values.reshape(-1, 1))
-
     ### Encode IS_FRAUD
 
     df["IS_FRAUD"] = df["IS_FRAUD"].map({'F': 0, 'T': 1}).fillna(0)
@@ -93,7 +88,7 @@ def model(dbt, session):
     features = [
         'SWIPE_ID', 'SWIPE_DATE', 'SWIPE_DAY', 'SWIPE_TIME_OF_DAY', 'IS_FIRST_WEEK_OF_POLICY',
         'POSSIBLE_GIFT_CARD', 'SWIPE_COUNT_ROLLING_48_HR', 'SWIPE_AMOUNT_ROLLING_48_HR',
-        'MERCHANT_MCC', 'MERCHANT_NAME_MATCHES_POLICY_HOLDER_NAME', 'SWIPE_CITY_FRAUDSTER_COUNT', 'IS_FRAUD'
+        'MCC', 'MERCHANT_NAME_MATCHES_POLICY_HOLDER_NAME', 'IS_FRAUD'
     ]
     df = df[features]
 
