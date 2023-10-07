@@ -1,0 +1,10 @@
+
+version: 2
+
+sources:
+  - name: FRAUD_WORKSHOP_DB__SWIPE
+    database: FRAUD_WORKSHOP_DB
+    schema: SWIPE
+    tables:
+      - name: FCT_SWIPE
+

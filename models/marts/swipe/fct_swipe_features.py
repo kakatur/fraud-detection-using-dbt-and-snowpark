@@ -20,7 +20,7 @@ def model(dbt, session):
 
     ### Fetch data from Snowflake (last 15 days if incremental)
 
-    df = dbt.ref("fct_swipe").to_pandas()
+    df = dbt.source("FRAUD_WORKSHOP_DB__SWIPE", "FCT_SWIPE").to_pandas()
     if dbt.is_incremental:
         df = df[df.SWIPE_DATE > datetime.now() - pd.to_timedelta("15day")]
 
