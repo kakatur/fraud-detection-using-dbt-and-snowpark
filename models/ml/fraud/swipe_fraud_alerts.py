@@ -15,11 +15,6 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, f1_score
 
-import sys
-import os
-import joblib
-import cachetools
-
 from snowflake.snowpark.functions import udf
 from snowflake.snowpark.types import FloatType, TimestampType, StringType, StructType, StructField
 
@@ -38,7 +33,7 @@ def model(dbt, session):
 
     ### Exclude the latest 2 days from the dataset
 
-    df_dim_swipe_features = df_dim_swipe_features[df_dim_swipe_features.SWIPE_DATE < datetime.now() - pd.to_timedelta("2day")]
+    df_dim_swipe_features = df_dim_swipe_features[df_dim_swipe_features.SWIPE_DATE < datetime.now() - pd.to_timedelta("150day")]
 
     ### Since only 0.2% of the swipe data has been from the known fraudsters (good for us!),
     ### for balance, we select all fraud swipes, followed by the same number of latest non-fraud swipes.
@@ -114,6 +109,11 @@ def model(dbt, session):
 
     if model_accuracy_score > previous_accuracy_score and model_f1_score > previous_f1_score:
 
+        import sys
+        import os
+        import joblib
+        import cachetools
+
         ### Store model into Snowflake stage
 
         joblib.dump(swipe_fraud_alerts_model, '/tmp/swipe_fraud_alerts_model.joblib', compress=True)
@@ -133,7 +133,7 @@ def model(dbt, session):
 
         ### Create UDF
 
-        @udf(name='predict_fraudster_swipe', is_permanent=False, stage_location = "@"+dbt.this.database+".PUBLIC.MODELS_STAGE", replace=True)
+        @udf(name='predict_fraudster_swipe', is_permanent=True, stage_location = "@"+dbt.this.database+".PUBLIC.MODELS_STAGE", replace=True)
         def predict_fraudster_swipe(args: list) -> float:
 
             swipe_fraud_alerts_model = load_file("swipe_fraud_alerts_model.joblib")
